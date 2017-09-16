@@ -23,3 +23,7 @@ variable "amis" {
     "eu-west-2" = "ami-b83023dc"
   }
 }
+
+variable "hostname" {
+  default = "trodger.com."
+}

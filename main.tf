@@ -102,7 +102,7 @@ resource "aws_elb" "web" {
 }
 
 data "aws_route53_zone" "selected" {
-  name         = "trodger.com."
+  name         = "${var.hostname}"
   private_zone = true
 }
 
