@@ -23,10 +23,9 @@ resource "aws_subnet" "default" {
   map_public_ip_on_launch = true
 }
 
-# A security group for the ELB so it is accessible via the web
 resource "aws_security_group" "elb" {
-  name        = "terraform_example_elb"
-  description = "Used in the terraform"
+  name        = "elb_sg_01"
+  description = "A security group for the ELB, accessible via the web"
   vpc_id      = "${aws_vpc.default.id}"
 
   # HTTP access from anywhere
@@ -46,11 +45,9 @@ resource "aws_security_group" "elb" {
   }
 }
 
-# Our default security group to access
-# the instances over SSH and HTTP
 resource "aws_security_group" "default" {
-  name        = "terraform_example"
-  description = "Used in the terraform"
+  name        = "default_sg_01"
+  description = "Default security group, for SSH & HTTP"
   vpc_id      = "${aws_vpc.default.id}"
 
   # SSH access from anywhere
@@ -79,7 +76,7 @@ resource "aws_security_group" "default" {
 }
 
 resource "aws_elb" "web" {
-  name = "terraform-example-elb"
+  name = "elb_01"
 
   subnets         = ["${aws_subnet.default.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
@@ -126,10 +123,7 @@ resource "aws_key_pair" "auth" {
 resource "aws_instance" "web" {
 
   connection {
-    # The default username for our AMI
     user = "ubuntu"
-
-    # The connection will use the local SSH agent for authentication.
   }
 
   ami           = "${lookup(var.amis, var.region)}"
@@ -145,12 +139,10 @@ resource "aws_instance" "web" {
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
-  # backend instances.
+  # backend instances
   subnet_id = "${aws_subnet.default.id}"
 
-  # We run a remote provisioner on the instance after creating it.
-  # In this case, we just install nginx and start it. By default,
-  # this should be on port 80
+  # install nginx and start it
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get -y update",
