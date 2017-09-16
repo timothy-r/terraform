@@ -101,6 +101,23 @@ resource "aws_elb" "web" {
   }
 }
 
+data "aws_route53_zone" "selected" {
+  name         = "trodger.com."
+  private_zone = true
+}
+
+resource "aws_route53_record" "www" {
+  zone_id = "${data.aws_route53_zone.selected.zone_id}"
+  name    = "web-test.${data.aws_route53_zone.selected.name}"
+  type    = "A"
+
+  alias {
+    name                   = "${aws_elb.web.dns_name}"
+    zone_id                = "${aws_elb.web.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
 resource "aws_key_pair" "auth" {
   key_name   = "${var.key_name}"
   public_key = "${file(var.public_key_path)}"
