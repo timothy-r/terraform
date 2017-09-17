@@ -21,6 +21,10 @@ resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.default.id}"
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
+
+  tags {
+    Name = "public"
+  }
 }
 
 resource "aws_security_group" "elb" {
@@ -99,7 +103,7 @@ resource "aws_elb" "web" {
 }
 
 data "aws_route53_zone" "selected" {
-  name         = "${var.hostname}"
+  name = "${var.hostname}"
 }
 
 resource "aws_route53_record" "www" {
@@ -136,8 +140,7 @@ resource "aws_instance" "web" {
   # Our Security group to allow HTTP and SSH access
   vpc_security_group_ids = ["${aws_security_group.web.id}"]
 
-  # Launch into the public subnet as with ELB.
-  # @todo use a private subnet
+  # Launch into the public subnet as with ELB
   subnet_id = "${aws_subnet.public.id}"
 
   # install nginx and start it
