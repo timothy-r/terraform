@@ -136,9 +136,8 @@ resource "aws_instance" "web" {
   # Our Security group to allow HTTP and SSH access
   vpc_security_group_ids = ["${aws_security_group.web.id}"]
 
-  # We're going to launch into the same subnet as our ELB. In a production
-  # environment it's more common to have a separate private subnet for
-  # backend instances
+  # Launch into the public subnet as with ELB.
+  # @todo use a private subnet
   subnet_id = "${aws_subnet.public.id}"
 
   # install nginx and start it

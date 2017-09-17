@@ -13,7 +13,7 @@ DESCRIPTION
 }
 
 variable "key_name" {
-  description = "Desired name of AWS key pair"
+  description = "Name of the AWS key pair"
   default = "key-01"
 }
 
