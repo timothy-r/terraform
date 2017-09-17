@@ -9,7 +9,7 @@ Ensure this keypair is added to your local SSH agent so provisioners can
 connect.
 Example: ~/.ssh/terraform.pub
 DESCRIPTION
-  default = "~/.ssh/gh_rsa.pub"
+
 }
 
 variable "key_name" {
@@ -29,6 +29,12 @@ variable "instance_type" {
 }
 
 variable "hostname" {
-  description = "Enter the hostname to create a sub-domain under. Add a trailing dot!"
+  description = <<DESCRIPTION
+Enter the hostname to create the sub-domain under.
+Don't forget to add a trailing dot!
+
+Example: my-fab-host.com.
+DESCRIPTION
+
 }
 
