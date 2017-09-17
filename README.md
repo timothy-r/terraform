@@ -1,3 +1,5 @@
-# terraform-web-server
+# terraform scripts
 
-Provision a web server on AWS EC2
+## ec2
+
+Provision a web server on AWS EC2 with ELB & a route 53 host
