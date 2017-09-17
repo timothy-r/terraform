@@ -17,7 +17,7 @@ resource "aws_route" "internet_access" {
 }
 
 # Create a subnet to launch our instances into
-resource "aws_subnet" "default" {
+resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.default.id}"
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
@@ -45,7 +45,7 @@ resource "aws_security_group" "elb" {
   }
 }
 
-resource "aws_security_group" "default" {
+resource "aws_security_group" "web" {
   name        = "default_sg_01"
   description = "Default security group, for SSH & HTTP"
   vpc_id      = "${aws_vpc.default.id}"
@@ -78,7 +78,7 @@ resource "aws_security_group" "default" {
 resource "aws_elb" "web" {
   name = "elb-01"
 
-  subnets         = ["${aws_subnet.default.id}"]
+  subnets         = ["${aws_subnet.public.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
   instances       = ["${aws_instance.web.id}"]
 
@@ -134,12 +134,12 @@ resource "aws_instance" "web" {
   }
 
   # Our Security group to allow HTTP and SSH access
-  vpc_security_group_ids = ["${aws_security_group.default.id}"]
+  vpc_security_group_ids = ["${aws_security_group.web.id}"]
 
   # We're going to launch into the same subnet as our ELB. In a production
   # environment it's more common to have a separate private subnet for
   # backend instances
-  subnet_id = "${aws_subnet.default.id}"
+  subnet_id = "${aws_subnet.public.id}"
 
   # install nginx and start it
   provisioner "remote-exec" {
