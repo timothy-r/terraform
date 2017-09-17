@@ -48,6 +48,16 @@ variable "azs" {
   default = ["eu-west-2a", "eu-west-2b"]
 }
 
+variable "vpc_cidr" {
+  default = "10.0.0.0/16"
+}
+
+variable "public_subnet_cidrs" {
+  description = "CIDRs for the public subnets"
+  type = "list"
+  default = ["10.0.0.0/24", "10.0.1.0/24"]
+}
+
 variable "instance_count" {
   description = "Number of web vms to run"
   default = 3

@@ -1,10 +1,10 @@
 
 # Create a VPC to launch our instances into
 resource "aws_vpc" "default" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "${var.vpc_cidr}"
 }
 
-# Create an internet gateway to give our subnet access to the outside world
+# Create an internet gateway for public subnet access
 resource "aws_internet_gateway" "default" {
   vpc_id = "${aws_vpc.default.id}"
 }
@@ -16,14 +16,17 @@ resource "aws_route" "internet_access" {
   gateway_id             = "${aws_internet_gateway.default.id}"
 }
 
-# Create a subnet to launch our instances into
+# Create public subnets to launch the instances into
 resource "aws_subnet" "public" {
+  count = 2
   vpc_id                  = "${aws_vpc.default.id}"
-  cidr_block              = "10.0.1.0/24"
+  cidr_block              = "${element(var.public_subnet_cidrs, count.index)}"
   map_public_ip_on_launch = true
 
+  availability_zone = "${element(var.azs, count.index)}"
+
   tags {
-    Name = "public"
+    Name = "public-${count.index}"
   }
 }
 
@@ -144,11 +147,11 @@ resource "aws_instance" "web" {
     Name = "web-${count.index}"
   }
 
-  # Our Security group to allow HTTP and SSH access
+  # Security group to allow HTTP and SSH access
   vpc_security_group_ids = ["${aws_security_group.web.id}"]
 
   # Launch into the public subnet as with ELB
-  subnet_id = "${aws_subnet.public.id}"
+  subnet_id =  "${element(aws_subnet.public.id, count.index)}" #"${aws_subnet.public.id}"
 
   # install nginx and start it
   provisioner "remote-exec" {
