@@ -24,6 +24,11 @@ variable "amis" {
   }
 }
 
+variable "instance_type" {
+  default = "t2.micro"
+}
+
 variable "hostname" {
   default = "trodger.com."
 }
+

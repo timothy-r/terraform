@@ -76,7 +76,7 @@ resource "aws_security_group" "default" {
 }
 
 resource "aws_elb" "web" {
-  name = "elb_01"
+  name = "elb-01"
 
   subnets         = ["${aws_subnet.default.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
@@ -100,7 +100,6 @@ resource "aws_elb" "web" {
 
 data "aws_route53_zone" "selected" {
   name         = "${var.hostname}"
-  private_zone = true
 }
 
 resource "aws_route53_record" "www" {
@@ -127,7 +126,7 @@ resource "aws_instance" "web" {
   }
 
   ami           = "${lookup(var.amis, var.region)}"
-  instance_type = "t2.micro"
+  instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.auth.id}"
 
   tags {
