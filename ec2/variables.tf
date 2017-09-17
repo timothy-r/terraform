@@ -38,3 +38,17 @@ DESCRIPTION
 
 }
 
+variable "sub_domain" {
+  description = "Enter the sub domain for this instance"
+}
+
+variable "azs" {
+  description = "Run the EC2 Instances in these Availability Zones"
+  type = "list"
+  default = ["eu-west-2a", "eu-west-2b"]
+}
+
+variable "instance_count" {
+  description = "Number of web vms to run"
+  default = 3
+}

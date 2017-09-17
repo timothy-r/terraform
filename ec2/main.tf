@@ -84,7 +84,9 @@ resource "aws_elb" "web" {
 
   subnets         = ["${aws_subnet.public.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
-  instances       = ["${aws_instance.web.id}"]
+
+  # add all the vms to the elb
+  instances       = ["${aws_instance.web.*.id}"]
 
   listener {
     instance_port     = 80
@@ -108,7 +110,7 @@ data "aws_route53_zone" "selected" {
 
 resource "aws_route53_record" "www" {
   zone_id = "${data.aws_route53_zone.selected.zone_id}"
-  name    = "web-test.${data.aws_route53_zone.selected.name}"
+  name    = "${var.sub_domain}.${data.aws_route53_zone.selected.name}"
   type    = "A"
 
   alias {
@@ -125,6 +127,8 @@ resource "aws_key_pair" "auth" {
 
 resource "aws_instance" "web" {
 
+  count = "${var.instance_count}"
+
   connection {
     user = "ubuntu"
   }
@@ -133,8 +137,11 @@ resource "aws_instance" "web" {
   instance_type = "${var.instance_type}"
   key_name      = "${aws_key_pair.auth.id}"
 
+  # place the vms inside multiple azs
+  availability_zone = "${element(var.azs, count.index)}"
+
   tags {
-    Name = "Web server 01"
+    Name = "web-${count.index}"
   }
 
   # Our Security group to allow HTTP and SSH access
