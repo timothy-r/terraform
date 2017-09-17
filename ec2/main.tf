@@ -2,6 +2,9 @@
 # Create a VPC to launch our instances into
 resource "aws_vpc" "default" {
   cidr_block = "${var.vpc_cidr}"
+  tags {
+    Name = "Ace"
+  }
 }
 
 # Create an internet gateway for public subnet access
@@ -19,11 +22,12 @@ resource "aws_route" "internet_access" {
 # Create public subnets to launch the instances into
 resource "aws_subnet" "public" {
   count = 2
-  vpc_id                  = "${aws_vpc.default.id}"
-  cidr_block              = "${element(var.public_subnet_cidrs, count.index)}"
-  map_public_ip_on_launch = true
 
+  vpc_id            = "${aws_vpc.default.id}"
+  cidr_block        = "${element(var.public_subnet_cidrs, count.index)}"
   availability_zone = "${element(var.azs, count.index)}"
+
+  map_public_ip_on_launch = true
 
   tags {
     Name = "public-${count.index}"
@@ -53,7 +57,7 @@ resource "aws_security_group" "elb" {
 }
 
 resource "aws_security_group" "web" {
-  name        = "default_sg_01"
+  name        = "web_sg_01"
   description = "Default security group, for SSH & HTTP"
   vpc_id      = "${aws_vpc.default.id}"
 
@@ -85,7 +89,7 @@ resource "aws_security_group" "web" {
 resource "aws_elb" "web" {
   name = "elb-01"
 
-  subnets         = ["${aws_subnet.public.id}"]
+  subnets         = ["${aws_subnet.public.*.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
 
   # add all the vms to the elb
@@ -151,7 +155,7 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = ["${aws_security_group.web.id}"]
 
   # Launch into the public subnet as with ELB
-  subnet_id =  "${element(aws_subnet.public.id, count.index)}" #"${aws_subnet.public.id}"
+  subnet_id =  "${element(aws_subnet.public.*.id, count.index)}" #"${aws_subnet.public.id}"
 
   # install nginx and start it
   provisioner "remote-exec" {
