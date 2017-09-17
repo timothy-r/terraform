@@ -1,20 +1,24 @@
 
 # Create a VPC to launch our instances into
-resource "aws_vpc" "default" {
+resource "aws_vpc" "main" {
   cidr_block = "${var.vpc_cidr}"
   tags {
-    Name = "Ace"
+    Name = "Ace VPC"
+    System = "Ace"
   }
 }
 
 # Create an internet gateway for public subnet access
 resource "aws_internet_gateway" "default" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.main.id}"
+  tags {
+    System = "Ace"
+  }
 }
 
 # Grant the VPC internet access on its main route table
 resource "aws_route" "internet_access" {
-  route_table_id         = "${aws_vpc.default.main_route_table_id}"
+  route_table_id         = "${aws_vpc.main.main_route_table_id}"
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = "${aws_internet_gateway.default.id}"
 }
@@ -23,7 +27,7 @@ resource "aws_route" "internet_access" {
 resource "aws_subnet" "public" {
   count = 2
 
-  vpc_id            = "${aws_vpc.default.id}"
+  vpc_id            = "${aws_vpc.main.id}"
   cidr_block        = "${element(var.public_subnet_cidrs, count.index)}"
   availability_zone = "${element(var.azs, count.index)}"
 
@@ -31,13 +35,19 @@ resource "aws_subnet" "public" {
 
   tags {
     Name = "public-${count.index}"
+    System = "Ace"
   }
 }
 
 resource "aws_security_group" "elb" {
-  name        = "elb_sg_01"
+
   description = "A security group for the ELB, accessible via the web"
-  vpc_id      = "${aws_vpc.default.id}"
+  vpc_id      = "${aws_vpc.main.id}"
+
+  tags {
+    Name = "SG lb 01"
+    System = "Ace"
+  }
 
   # HTTP access from anywhere
   ingress {
@@ -57,9 +67,14 @@ resource "aws_security_group" "elb" {
 }
 
 resource "aws_security_group" "web" {
-  name        = "web_sg_01"
+
   description = "Default security group, for SSH & HTTP"
-  vpc_id      = "${aws_vpc.default.id}"
+  vpc_id      = "${aws_vpc.main.id}"
+
+  tags {
+    Name = "SG web 01"
+    System = "Ace"
+  }
 
   # SSH access from anywhere
   ingress {
@@ -87,13 +102,17 @@ resource "aws_security_group" "web" {
 }
 
 resource "aws_elb" "web" {
-  name = "elb-01"
 
   subnets         = ["${aws_subnet.public.*.id}"]
   security_groups = ["${aws_security_group.elb.id}"]
 
   # add all the vms to the elb
   instances       = ["${aws_instance.web.*.id}"]
+
+  tags {
+    Name = "LB web 01"
+    System = "Ace"
+  }
 
   listener {
     instance_port     = 80
@@ -149,13 +168,14 @@ resource "aws_instance" "web" {
 
   tags {
     Name = "web-${count.index}"
+    System = "Ace"
   }
 
   # Security group to allow HTTP and SSH access
   vpc_security_group_ids = ["${aws_security_group.web.id}"]
 
   # Launch into the public subnet as with ELB
-  subnet_id =  "${element(aws_subnet.public.*.id, count.index)}" #"${aws_subnet.public.id}"
+  subnet_id =  "${element(aws_subnet.public.*.id, count.index)}"
 
   # install nginx and start it
   provisioner "remote-exec" {
