@@ -29,6 +29,6 @@ variable "instance_type" {
 }
 
 variable "hostname" {
-  default = "trodger.com."
+  description = "Enter the hostname to create a sub-domain under. Add a trailing dot!"
 }
 
