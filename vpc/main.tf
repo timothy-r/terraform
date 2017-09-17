@@ -78,8 +78,8 @@ resource "aws_subnet" "app" {
 
 
 resource "aws_security_group" "vm" {
-  name        = "default_sg_01"
-  description = "Vm security group, for SSH & HTTP"
+  name        = "vm_sg_01"
+  description = "VM security group, for SSH & HTTP"
   vpc_id      = "${aws_vpc.ace.id}"
 
   # SSH access from anywhere
@@ -123,13 +123,13 @@ resource "aws_instance" "vm" {
   key_name      = "${aws_key_pair.auth.id}"
 
   tags {
-    Name = "Test vm"
+    Name = "Test VM"
   }
 
-  # Our Security group to allow HTTP and SSH access
+  # Security group to allow HTTP and SSH access
   vpc_security_group_ids = ["${aws_security_group.vm.id}"]
 
-  # Launch into the public subnet as with ELB
+  # Launch into the public subnet
   subnet_id = "${aws_subnet.dmz.id}"
 
 }
