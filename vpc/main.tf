@@ -1,57 +1,86 @@
 
 # Create a VPC to launch our instances into
-resource "aws_vpc" "default" {
+resource "aws_vpc" "ace" {
   cidr_block = "${var.vpc_cidr}"
+
+  tags {
+    Name = "Ace"
+  }
 }
 
 # Create an internet gateway to give our subnet access to the outside world
 resource "aws_internet_gateway" "default" {
-  vpc_id = "${aws_vpc.default.id}"
+  vpc_id = "${aws_vpc.ace.id}"
+
+  tags {
+    Name = "InternetGW"
+  }
+}
+
+resource "aws_route_table" "dmz" {
+
+  vpc_id = "${aws_vpc.ace.id}"
+
+  tags {
+    Name = "DMZ"
+  }
 }
 
 # Grant the VPC internet access on its main route table
 resource "aws_route" "internet_access" {
-  route_table_id         = "${aws_vpc.default.main_route_table_id}"
+  route_table_id         = "${aws_route_table.dmz.id}"
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = "${aws_internet_gateway.default.id}"
+
 }
 
+# associate dmz subnet with the dmz route table
+resource "aws_route_table_association" "dmz" {
+  subnet_id      = "${aws_subnet.dmz.id}"
+  route_table_id = "${aws_route_table.dmz.id}"
+}
+
+
 # Create a public subnet to launch our instances into
-resource "aws_subnet" "public" {
-  vpc_id                  = "${aws_vpc.default.id}"
-  cidr_block              = "10.0.0.0/24"
+resource "aws_subnet" "dmz" {
+  vpc_id                  = "${aws_vpc.ace.id}"
+  cidr_block              = "${var.subnet_cidr["DMZ"]}"
+  availability_zone       = "${var.subnet_az["DMZ"]}"
+
   map_public_ip_on_launch = true
 
   tags {
-    Name = "public"
+    Name = "DMZ"
   }
 }
 
 # Create a private subnet to launch our instances into
-resource "aws_subnet" "private_01" {
-  vpc_id                  = "${aws_vpc.default.id}"
-  cidr_block              = "10.0.1.0/24"
+resource "aws_subnet" "db" {
+  vpc_id            = "${aws_vpc.ace.id}"
+  cidr_block        = "${var.subnet_cidr["DB"]}"
+  availability_zone = "${var.subnet_az["DB"]}"
 
   tags {
-    Name = "private 01"
+    Name = "DB"
   }
 }
 
 # Create a second private subnet to launch our instances into
-resource "aws_subnet" "private_02" {
-  vpc_id                  = "${aws_vpc.default.id}"
-  cidr_block              = "10.0.2.0/24"
+resource "aws_subnet" "app" {
+  vpc_id            = "${aws_vpc.ace.id}"
+  cidr_block        = "${var.subnet_cidr["APP"]}"
+  availability_zone = "${var.subnet_az["APP"]}"
 
   tags {
-    Name = "private 02"
+    Name = "App"
   }
 }
 
 
 resource "aws_security_group" "vm" {
   name        = "default_sg_01"
-  description = "Default security group, for SSH & HTTP"
-  vpc_id      = "${aws_vpc.default.id}"
+  description = "Vm security group, for SSH & HTTP"
+  vpc_id      = "${aws_vpc.ace.id}"
 
   # SSH access from anywhere
   ingress {
@@ -94,13 +123,13 @@ resource "aws_instance" "vm" {
   key_name      = "${aws_key_pair.auth.id}"
 
   tags {
-    Name = "Ubuntu vm"
+    Name = "Test vm"
   }
 
   # Our Security group to allow HTTP and SSH access
   vpc_security_group_ids = ["${aws_security_group.vm.id}"]
 
   # Launch into the public subnet as with ELB
-  subnet_id = "${aws_subnet.public.id}"
+  subnet_id = "${aws_subnet.dmz.id}"
 
 }
