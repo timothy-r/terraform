@@ -3,8 +3,8 @@
 resource "aws_vpc" "main" {
   cidr_block = "${var.vpc_cidr}"
   tags {
-    Name = "Ace VPC"
-    System = "Ace"
+    Name = "${var.system_name} VPC"
+    System = "${var.system_name}"
   }
 }
 
@@ -12,7 +12,8 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "default" {
   vpc_id = "${aws_vpc.main.id}"
   tags {
-    System = "Ace"
+    Name = "${var.system_name} IGW"
+    System = "${var.system_name}"
   }
 }
 
@@ -35,7 +36,7 @@ resource "aws_subnet" "public" {
 
   tags {
     Name = "public-${count.index}"
-    System = "Ace"
+    System = "${var.system_name}"
   }
 }
 
@@ -45,8 +46,8 @@ resource "aws_security_group" "elb" {
   vpc_id      = "${aws_vpc.main.id}"
 
   tags {
-    Name = "SG lb 01"
-    System = "Ace"
+    Name = "lb 01"
+    System = "${var.system_name}"
   }
 
   # HTTP access from anywhere
@@ -72,8 +73,8 @@ resource "aws_security_group" "web" {
   vpc_id      = "${aws_vpc.main.id}"
 
   tags {
-    Name = "SG web 01"
-    System = "Ace"
+    Name = "web 01"
+    System = "${var.system_name}"
   }
 
   # SSH access from anywhere
@@ -111,7 +112,7 @@ resource "aws_elb" "web" {
 
   tags {
     Name = "LB web 01"
-    System = "Ace"
+    System = "${var.system_name}"
   }
 
   listener {
@@ -147,7 +148,7 @@ resource "aws_route53_record" "www" {
 }
 
 resource "aws_key_pair" "auth" {
-  key_name   = "${var.key_name}"
+  key_name   = "${var.system_name}-${var.key_name}"
   public_key = "${file(var.public_key_path)}"
 }
 
@@ -156,7 +157,7 @@ resource "aws_instance" "web" {
   count = "${var.instance_count}"
 
   connection {
-    user = "ubuntu"
+    user = "${var.user_name}"
   }
 
   ami           = "${lookup(var.amis, var.region)}"
@@ -168,7 +169,7 @@ resource "aws_instance" "web" {
 
   tags {
     Name = "web-${count.index}"
-    System = "Ace"
+    System = "${var.system_name}"
   }
 
   # Security group to allow HTTP and SSH access

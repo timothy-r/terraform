@@ -1,3 +1,8 @@
+
+variable "system_name" {
+  default = "Ace"
+}
+
 variable "region" {
   default = "eu-west-2"
 }
@@ -61,4 +66,8 @@ variable "public_subnet_cidrs" {
 variable "instance_count" {
   description = "Number of web vms to run"
   default = 3
+}
+
+variable "user_name" {
+  default = 'ubuntu'
 }
