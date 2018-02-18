@@ -1,16 +1,16 @@
 
 # Create a VPC to launch our instances into
-resource "aws_vpc" "ace" {
+resource "aws_vpc" "default" {
   cidr_block = "${var.vpc_cidr}"
 
   tags {
-    Name = "Ace"
+    Name = "default"
   }
 }
 
 # Create an internet gateway to give our subnet access to the outside world
 resource "aws_internet_gateway" "default" {
-  vpc_id = "${aws_vpc.ace.id}"
+  vpc_id = "${aws_vpc.default.id}"
 
   tags {
     Name = "InternetGW"
@@ -19,7 +19,7 @@ resource "aws_internet_gateway" "default" {
 
 resource "aws_route_table" "dmz" {
 
-  vpc_id = "${aws_vpc.ace.id}"
+  vpc_id = "${aws_vpc.default.id}"
 
   tags {
     Name = "DMZ"
@@ -43,7 +43,7 @@ resource "aws_route_table_association" "dmz" {
 
 # Create a public subnet to launch our instances into
 resource "aws_subnet" "dmz" {
-  vpc_id                  = "${aws_vpc.ace.id}"
+  vpc_id                  = "${aws_vpc.default.id}"
   cidr_block              = "${var.subnet_cidr["DMZ"]}"
   availability_zone       = "${var.subnet_az["DMZ"]}"
 
@@ -56,7 +56,7 @@ resource "aws_subnet" "dmz" {
 
 # Create a private subnet to launch our instances into
 resource "aws_subnet" "db" {
-  vpc_id            = "${aws_vpc.ace.id}"
+  vpc_id            = "${aws_vpc.default.id}"
   cidr_block        = "${var.subnet_cidr["DB"]}"
   availability_zone = "${var.subnet_az["DB"]}"
 
@@ -67,7 +67,7 @@ resource "aws_subnet" "db" {
 
 # Create a second private subnet to launch our instances into
 resource "aws_subnet" "app" {
-  vpc_id            = "${aws_vpc.ace.id}"
+  vpc_id            = "${aws_vpc.default.id}"
   cidr_block        = "${var.subnet_cidr["APP"]}"
   availability_zone = "${var.subnet_az["APP"]}"
 
@@ -80,7 +80,7 @@ resource "aws_subnet" "app" {
 resource "aws_security_group" "vm" {
   name        = "vm_sg_01"
   description = "VM security group, for SSH & HTTP"
-  vpc_id      = "${aws_vpc.ace.id}"
+  vpc_id      = "${aws_vpc.default.id}"
 
   # SSH access from anywhere
   ingress {

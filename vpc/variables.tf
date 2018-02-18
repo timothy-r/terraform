@@ -1,5 +1,5 @@
 variable "region" {
-  default = "us-east-1"
+  default = "eu-west-2"
 }
 
 variable "public_key_path" {
@@ -45,8 +45,8 @@ variable "subnet_cidr" {
 variable "subnet_az" {
   type = "map"
   default = {
-    "DMZ" = "us-east-1b"
-    "DB"  = "us-east-1c"
-    "APP" = "us-east-1d"
+    "DMZ" = "eu-west-2a"
+    "DB"  = "eu-west-2c"
+    "APP" = "eu-west-2b"
   }
 }
